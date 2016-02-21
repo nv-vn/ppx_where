@@ -29,7 +29,11 @@ let expand_where = function
       let (pre_where, post_where) = split_at_where context' in
       if pre_where = [] || post_where = [] then None
       else begin
-        Some [%expr print_endline "Evaluated as `where`"]
+        let new_context = match pre_where with
+          | [] -> raise (PpxWhereException "Keyword `where` used in invalid context")
+          | [f] -> Exp.mk f
+          | f::xs -> Exp.apply (Exp.mk f) (List.map (fun e -> ("", Exp.mk e)) xs) in
+        Some new_context
       end
     end
   | _ -> None (* Maybe we should indicate some error in this case *)
