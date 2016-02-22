@@ -1,0 +1,4 @@
+name="ppx_where"
+description="Haskell-style `where` clauses as a PPX syntax extension"
+version="1.0"
+ppx="./ppx_where.native"

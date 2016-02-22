@@ -1,4 +1,4 @@
-Name: ppx-where
+Name: ppx_where
 Version: 1.0
 OCamlVersion: >= 4.02
 Synopsis: Haskell-style `where` clauses as a syntax extension
@@ -9,8 +9,19 @@ OASISFormat: 0.4
 BuildTools: ocamlbuild
 Plugins: META (0.4), DevFiles (0.4)
 
+PreInstallCommand:   $ocamlfind install ppx_where src/META && ocamlfind install ppx_where -add ./ppx_where.native
+PreUninstallCommand: $ocamlfind remove ppx_where
+
 Executable "ppx_where"
   Path: src/
+  Install: false
   MainIs: ppx_where.ml
-  CompiledObject: best
+  CompiledObject: native
   BuildDepends: compiler-libs.common, ppx_tools.metaquot
+
+Executable "test_ppx_where"
+  Build$: flag(tests)
+  Path: test/
+  Install: false
+  MainIs: test.ml
+  BuildDepends: ppx_where
