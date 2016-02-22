@@ -25,6 +25,10 @@ let rec pattern_of_expr ~loc = function
   | Pexp_construct (constructor, args) -> Pat.construct ~loc constructor (omap (fun {pexp_desc} -> pattern_of_expr ~loc pexp_desc) args)
   | _ -> Pat.any ~loc ()
 
+let rec expand_fun ~loc e = function
+  | [] -> e
+  | x::xs -> Exp.fun_ ~loc "" None x (expand_fun ~loc e xs)
+
 (* Parsing: `f 1 2 where f a b = a + b`:
    Pexp_apply "=":
      Pexp_apply "f":
@@ -54,7 +58,7 @@ let expand_where ~loc = function
           | [] -> raise (PpxWhereException "Keyword `where` used in invalid context")
           | [f] -> Exp.mk f
           | f::xs -> Exp.apply (Exp.mk f) (List.map (fun e -> ("", Exp.mk e)) xs) in
-        Some (Exp.let_ Nonrecursive [Vb.mk name body] new_context)
+        Some (Exp.let_ Nonrecursive [Vb.mk name (expand_fun ~loc body matches)] new_context)
       end
     end
   | _ -> None (* Maybe we should indicate some error in this case *)
