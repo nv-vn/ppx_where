@@ -11,18 +11,19 @@ let omap f = function
   | Some x -> Some (f x)
 
 (* Add:
-   - Records
-   - Polymorphic variants
-   - __ -> _ or `Any -> _ or any -> _ ?
+   - Optional args/named args
    - Array literals
-   - Lazy literals
-   - || -> Extra | clauses ? *)
+   - Lazy literals *)
 
 let rec pattern_of_expr ~loc = function
+  | Pexp_ident {txt = Lident "any"} -> Pat.any ~loc ()
   | Pexp_ident {txt = Lident id} -> Pat.var ~loc {txt = id; loc}
-  | Pexp_constant const -> Pat.constant const
+  | Pexp_apply ({pexp_desc = Pexp_ident {txt = Lident "or"}}, [_, {pexp_desc = arg1}; _, {pexp_desc = arg2}]) -> Pat.or_ ~loc (pattern_of_expr ~loc arg1) (pattern_of_expr ~loc arg2)
+  | Pexp_constant const -> Pat.constant ~loc const
   | Pexp_tuple vals -> Pat.tuple ~loc (List.map (fun {pexp_desc} -> pattern_of_expr ~loc pexp_desc) vals)
   | Pexp_construct (constructor, args) -> Pat.construct ~loc constructor (omap (fun {pexp_desc} -> pattern_of_expr ~loc pexp_desc) args)
+  | Pexp_variant (constructor, args) -> Pat.variant ~loc constructor (omap (fun {pexp_desc} -> pattern_of_expr ~loc pexp_desc) args)
+  | Pexp_record (fields, _) -> Pat.record ~loc (List.map (fun (name, {pexp_desc}) -> (name, pattern_of_expr ~loc pexp_desc)) fields) Open
   | _ -> Pat.any ~loc ()
 
 let rec expand_fun ~loc e = function

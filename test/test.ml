@@ -22,6 +22,23 @@ let () = print_endline (string_of_int (second [1; 2; 3]))
 let () = print (show 5)
     where (print, show) = (print_endline, string_of_int)
 
+(* Test default case *)
+let () = print_endline (always 15)
+    where always any = "This is always true"
+
+(* Test polymorphic variants and `or` clauses *)
+let () = print_endline (a_or_b `B)
+    where a_or_b (`A or `B) = "It's either `A or `B"
+
+(* Test record matching *)
+type stuff = {
+  first : int;
+  second : string
+}
+
+let () = print_endline (string_of_int (first_field {first = 1; second = "2"}))
+    where first_field {first} = first
+
 (* Test recursive where clauses
 let () = print_num 15
     where print_num = print_endline <<< string_of_int

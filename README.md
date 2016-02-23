@@ -24,10 +24,15 @@ let second = fun (x, y) -> y in
 second (1, 2)
 ```
 
+## Special Syntax:
+
+* The equivalent to `_` is `any`
+* Instead of `|` use `or`
+
 ## Limitations:
 
 * No nested/recursive where clauses
 * Only one where clause per expression
-* Can't use `_` or `|` patterns in arguments
 * No support for default args or labels (yet)
-* No support for record matching, polymorphic variants, lazy matches, or array literals (yet)
+* No support for lazy matches or array literals (yet)
+* No intended support for constraints, unpacks, extensions, exceptions, intervals, type matches, or aliases for the time being
