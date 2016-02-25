@@ -11,9 +11,8 @@ let omap f = function
   | Some x -> Some (f x)
 
 (* Add:
-   - Optional args/named args
-   - Array literals
-   - Lazy literals *)
+   - Optional args/named args -> No clue how to implement these in a simple way without restructuring this whole ppx into spaghetti code
+   - Exceptions? *)
 
 let rec pattern_of_expr ~loc = function
   | Pexp_ident {txt = Lident "any"} -> Pat.any ~loc ()
@@ -24,23 +23,13 @@ let rec pattern_of_expr ~loc = function
   | Pexp_construct (constructor, args) -> Pat.construct ~loc constructor (omap (fun {pexp_desc} -> pattern_of_expr ~loc pexp_desc) args)
   | Pexp_variant (constructor, args) -> Pat.variant ~loc constructor (omap (fun {pexp_desc} -> pattern_of_expr ~loc pexp_desc) args)
   | Pexp_record (fields, _) -> Pat.record ~loc (List.map (fun (name, {pexp_desc}) -> (name, pattern_of_expr ~loc pexp_desc)) fields) Open
+  | Pexp_array items -> Pat.array ~loc (List.map (fun {pexp_desc} -> pattern_of_expr ~loc pexp_desc) items)
+  | Pexp_lazy e -> Pat.lazy_ ~loc (match e with {pexp_desc} -> pattern_of_expr ~loc pexp_desc)
   | _ -> Pat.any ~loc ()
 
 let rec expand_fun ~loc e = function
   | [] -> e
   | x::xs -> Exp.fun_ ~loc "" None x (expand_fun ~loc e xs)
-
-(* Parsing: `f 1 2 where f a b = a + b`:
-   Pexp_apply "=":
-     Pexp_apply "f":
-       Pexp_constant 1
-       Pexp_constant 2
-       Pexp_ident "where"
-       Pexp_ident "a"
-       Pexp_ident "b"
-     Pexp_apply "+":
-       Pexp_ident "a"
-       Pexp_ident "b" *)
 
 let expand_where ~loc = function
   | [_, {pexp_desc = Pexp_apply ({pexp_desc = f}, context)}; _, body] -> begin
@@ -57,12 +46,12 @@ let expand_where ~loc = function
         and matches = List.map (pattern_of_expr ~loc) (List.tl post_where) in
         let new_context = match pre_where with
           | [] -> raise (PpxWhereException "Keyword `where` used in invalid context")
-          | [f] -> Exp.mk f
-          | f::xs -> Exp.apply (Exp.mk f) (List.map (fun e -> ("", Exp.mk e)) xs) in
-        Some (Exp.let_ Nonrecursive [Vb.mk name (expand_fun ~loc body matches)] new_context)
+          | [f] -> Exp.mk ~loc f
+          | f::xs -> Exp.apply ~loc (Exp.mk f) (List.map (fun e -> ("", Exp.mk ~loc e)) xs) in
+        Some (Exp.let_ ~loc Nonrecursive [Vb.mk name (expand_fun ~loc body matches)] new_context)
       end
     end
-  | _ -> None (* Maybe we should indicate some error in this case *)
+  | _ -> None
 
 let where_mapper argv =
   {default_mapper with

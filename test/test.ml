@@ -39,6 +39,14 @@ type stuff = {
 let () = print_endline (string_of_int (first_field {first = 1; second = "2"}))
     where first_field {first} = first
 
+(* Test array matching *)
+let () = print_endline (string_of_int (third [| 1; 2; 3; 4; 5 |]))
+    where third [| any; any; third; any; any |] = third
+
+(* Test lazy matching *)
+let () = print_endline (force' (lazy "Hello"))
+    where force' (lazy msg) = msg
+
 (* Test recursive where clauses
 let () = print_num 15
     where print_num = print_endline <<< string_of_int

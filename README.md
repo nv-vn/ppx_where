@@ -34,5 +34,5 @@ second (1, 2)
 * No nested/recursive where clauses
 * Only one where clause per expression
 * No support for default args or labels (yet)
-* No support for lazy matches or array literals (yet)
-* No intended support for constraints, unpacks, extensions, exceptions, intervals, type matches, or aliases for the time being
+* No support for matching exceptions (yet)
+* No intended support for constraints, unpacks, extensions, intervals, type matches, or aliases for the time being
