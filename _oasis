@@ -17,7 +17,7 @@ Executable "ppx_where"
   Install: false
   MainIs: ppx_where.ml
   CompiledObject: native
-  BuildDepends: compiler-libs.common, ppx_tools.metaquot
+  BuildDepends: compiler-libs.common
 
 Executable "test_ppx_where"
   Build$: flag(tests)
